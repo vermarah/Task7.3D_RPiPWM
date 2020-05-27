@@ -1,0 +1,67 @@
+import RPi.GPIO as GPIO
+import time
+
+GPIO.setmode(GPIO.BCM)
+
+p = 14
+o = 15
+i = 18
+
+GPIO.setup(p, GPIO.OUT)
+GPIO.setup(o, GPIO.IN)
+GPIO.setup(i, GPIO.OUT)
+
+GPIO.output(i, True)
+buzzer = GPIO.PWM(i, 0.25)
+buzzer.start(1)
+
+def func(dist):
+    if dist < 50 and dist > 40:
+        return 2
+    if dist < 40 and dist > 30:
+        return 3
+    if dist < 30 and dist > 20:
+        return 4
+    if dist < 20 and dist > 10:
+        return 5
+    if dist < 10:
+        return 6
+    if dist > 50:
+        return 0.25
+    else:
+        return 0.25
+    
+def disp():
+    GPIO.output(p, True)
+
+    time.sleep(0.0001)
+    GPIO.output(p, False)
+ 
+    s = time.time()
+    v = time.time()
+ 
+    while GPIO.input(o) == 0:
+        s = time.time()
+
+    while GPIO.input(o) == 1:
+        v = time.time()
+
+    rah = v - s
+    disp = (rah * 34300) / 2
+    print("NEXT")
+    return disp
+
+
+ 
+if __name__ == '__main__':
+    try:
+        while True:
+            dist = disp()
+            print ("Distance of object from the sensor (in cm) = %.1f cm" % dist)
+            freq = func(dist)
+            buzzer.ChangeFrequency(freq)
+            time.sleep(1)
+            
+    except KeyboardInterrupt:
+        GPIO.cleanup()
+        buzzer.stop()
